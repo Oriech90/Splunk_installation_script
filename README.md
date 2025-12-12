@@ -1,4 +1,5 @@
-# Splunk_installation_script
+# Splunk Installation Script
+
 This script intend to automate Splunk Enterprise installation process depending on which Splunk instance you intend to install.
 
 Instances types:
