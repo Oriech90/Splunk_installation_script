@@ -1,8 +1,4 @@
-#!/bin/bash
-
-# If there was a conversion to .txt, or the file system does not recognize the file, run the following command:
-# sed -i 's/\r$//' file_name.sh
-
+````````````````````````#!/bin/bash
 echo
 echo '##############################################'
 echo '#                                            #'
@@ -132,13 +128,8 @@ echo "✓ Splunk test start and stop complete. Adjusted splunk-launch.conf to mi
 echo
 
 # Step 8: Enable boot-start
-output=$(/opt/splunk/bin/splunk enable boot-start -systemd-managed 1 -user splunk 2>&1)
-if [ $? -eq 0 ]; then
-    echo "✓ Boot-start enabled"
-else
-    echo "FATAL: Failed to enable boot-start"
-    echo "Error details: $output"
-fi
+/opt/splunk/bin/splunk enable boot-start -systemd-managed 1  -user splunk ||  echo "FATAL: Failed to enable boot-start"; 
+echo "✓ Boot-start enabled"
 echo
 
 # Step 9: Reload systemd and start Splunkd service
@@ -252,34 +243,7 @@ case $SPLUNK_INSTANCE in
                 continue
             fi
 
-            # 4.1 changes - optionally modify host name
-            echo
-            #read -r -p "Should edit host name? [y/N]: " edit_hostname_bool - deprecated
-            read -r -p "Enter hostname or press Enter to skip: " hostname
-            #if [[ "$edit_hostname_bool" =~ ^[Yy]$ ]]; then - deprecated
-            if [[ -n "$hostname" ]]; then
-                echo "This will edit /system/local/server.conf [general] stanza + /syste/local/inputs.conf [default] stanza"
-                read -r -p "Enter the hostname: " hostname
-                
-                # Update inputs.conf
-                echo "" >> /opt/splunk/etc/system/local/inputs.conf
-                echo "[default]" >> /opt/splunk/etc/system/local/inputs.conf
-                # Update server.conf
-                echo "host = ${hostname}" >> /opt/splunk/etc/system/local/inputs.conf
-                echo "" >> /opt/splunk/etc/system/local/server.conf
-                echo "[general]" >> /opt/splunk/etc/system/local/server.conf
-                echo "serverName = ${hostname}" >> /opt/splunk/etc/system/local/server.conf
-                
-            fi
-            
-            # 4.1 changes - optionally add multi site cluster config for peer node
-            read -r -p "Enter current site name (for multi-site clusters) or press Enter to skip: " site
-            # original command without multi-site config
-            cmd="/opt/splunk/bin/splunk edit cluster-config -mode peer -manager_uri https://${cm_ip}:8089 -replication_port 9887 -secret ${secret_key}"
-            if [[ -n "$site" ]]; then
-                # if site is provided, add site to the command
-                cmd+= "-site ${site}"
-            if runuser -l splunk -c "$cmd" ; then
+            if runuser -l splunk -c "/opt/splunk/bin/splunk edit cluster-config -mode peer -manager_uri https://${cm_ip}:8089 -replication_port 9887 -secret ${secret_key}" ; then
                 echo "✓ Peer node configured. Cluster Manager address: ${cm_ip}:8089."
                 echo
                 echo "Restarting Splunk to apply cluster configuration..."
