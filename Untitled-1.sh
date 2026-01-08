@@ -349,7 +349,7 @@ case $SPLUNK_INSTANCE in
                     echo "ERROR: Maximum retry attempts reached. Exiting after trying to configure \"edit cluster-config -mode peer\""
                     exit 1
                 fi
-            fi;q
+            fi
             
         done
         ;;
