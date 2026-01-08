@@ -125,12 +125,12 @@ while true; do
 done
 
 # Get web password from the user
-while true; do    
+while true; do
     read -s -p "Enter Web Password for Splunk admin user: " WEB_PASSWORD
     echo
 
     # Ensure password is not empty
-        if [[ -z "$PASSWORD" ]]; then
+        if [[ -z "$WEB_PASSWORD" ]]; then
             echo -e "\033[31mError: Password cannot be empty!\033[0m"
         else
             break
@@ -169,7 +169,7 @@ echo "✓ Enabled Splunk TCP input over 9997"
 echo
 
 # Step 7: Test Splunk start and stop
-runuser -l splunk -c '/opt/splunk/bin/splunk start --accept-license --seed-passwd $WEB_PASSWORD' ||  echo "FATAL: Failed to start Splunk"; 
+runuser -l splunk -c "/opt/splunk/bin/splunk start --accept-license --seed-passwd $WEB_PASSWORD" ||  echo "FATAL: Failed to start Splunk"; 
 runuser -l splunk -c '/opt/splunk/bin/splunk stop' ||  echo "FATAL: Failed to stop Splunk"; 
 chown root:splunk /opt/splunk/etc/splunk-launch.conf ||  echo "FATAL: Failed to set splunk-launch.conf ownership"; 
 chmod 644 /opt/splunk/etc/splunk-launch.conf ||  echo "FATAL: Failed to set splunk-launch.conf permissions";  
