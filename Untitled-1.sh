@@ -91,6 +91,39 @@ if [[ ! -f "$SPLUNK_TARBALL" ]]; then
     exit 1
 fi
 
+# Create splunk username and password
+while true; do
+    read -p "Enter Non-Root Username: " USERNAME
+    # Validate username
+    if [[ "$USERNAME" =~ [^a-zA-Z0-9] ]] || [ -z "$USERNAME" ]; then
+        echo "Invalid username. Please enter a valid username (alphanumeric characters only)."
+        continue
+    fi
+    while true; do
+        # Get password from the user
+        read -s -p "Enter Password for $USERNAME: " PASSWORD
+        echo -e "\n"
+
+        # Ensure password is not empty
+        if [[ -z "$PASSWORD" ]]; then
+            echo -e "\033[31mError: Password cannot be empty!\033[0m"
+        else
+            break
+        fi
+    done
+    # Create the user with home directory and set password
+    if id "$USERNAME" >/dev/null 2>&1; then
+        echo -e "\033[33mUser $USERNAME already exists!\033[0m"
+        break
+    else
+        if sudo useradd -m -s /bin/bash "$USERNAME" --password "$(openssl passwd -1 "$PASSWORD")" > /dev/null 2>&1; then
+            break
+        else
+            echo -e "\033[31mError: Failed to create user $USERNAME !\033[0m"
+        fi
+    fi
+done
+
 cd /tmp || { echo "FATAL: Failed to change to /tmp"; exit 1; }
 tar -xzvf "$SPLUNK_TARBALL" -C /opt || { echo "FATAL: Failed to extract Splunk"; exit 1; }
 echo "✓ Splunk extracted successfully"
