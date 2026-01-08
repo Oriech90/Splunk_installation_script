@@ -24,16 +24,14 @@ splunk edit licenser-localpeer -manager_uri https://<lic_manager>:8089 - on ever
 
 
 
-Final Goal:
-at the START of the installation, the user will be asked to reply with a number, according to the list:
-1. deployment client
-2. CM
-3. peer
-
-
-
 Dedicated script for indexer Clustering:
 1. manager
 2. peer nodes
 3. SH
+
+Task: 
+Create a new branch with the complete file. 
+Add a dedicated SH option at the start.
+afterwards need to ask the user if it should be connected to indexer cluster and add the relevant CLI command
+
 
