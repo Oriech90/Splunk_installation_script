@@ -126,11 +126,11 @@ done
 
 # Get web password from the user
 while true; do
-    read -s -p "Enter Web Password for Splunk admin user: " WEB_PASSWORD
+    read -s -p "Enter Web Password for Splunk admin user (Password must be at least 8 characters): " WEB_PASSWORD
     echo
 
     # Ensure password is not empty
-        if [[ -z "$WEB_PASSWORD" ]]; then
+        if [[ -z "$WEB_PASSWORD" || ${#WEB_PASSWORD} -lt 8 ]]; then
             echo -e "\033[31mError: Password cannot be empty!\033[0m"
         else
             break
