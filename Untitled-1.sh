@@ -131,7 +131,7 @@ while true; do
 
     # Ensure password is not empty
         if [[ -z "$WEB_PASSWORD" || ${#WEB_PASSWORD} -lt 8 ]]; then
-            echo -e "\033[31mError: Password cannot be empty!\033[0m"
+            echo -e "\033[31mError: Password cannot be empty or have less than 8 characters!\033[0m"
         else
             break
         fi
