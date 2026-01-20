@@ -141,6 +141,7 @@ cd /tmp || { echo "FATAL: Failed to change to /tmp"; exit 1; }
 tar -xzvf "$SPLUNK_TARBALL" -C /opt || { echo "FATAL: Failed to extract Splunk"; exit 1; }
 echo "✓ Splunk extracted successfully"
 
+
 chown -R splunk: /opt/splunk ||  { echo "FATAL: Failed to set ownership"; exit 1; } 
 echo "✓ Ownership set to splunk user"
 echo
@@ -152,6 +153,17 @@ if [[ "$SPLUNK_INSTANCE" != "PEER_NODE" ]]; then
     echo "enableSplunkWebSSL = true" >> /opt/splunk/etc/system/local/web.conf ||  echo "FATAL: Failed to set SSL";  
     echo "httpport = 8000" >> /opt/splunk/etc/system/local/web.conf || echo "FATAL: Failed to set HTTP port"; 
     echo "✓ HTTPS enabled for Splunk Web using self-signed certificate."
+    if tee /opt/splunk/etc/system/local/web.conf > dev/null <<EOF
+        [settings]
+        enableSplunkWebSSL = true
+        httpport = 8000
+EOF
+    then
+        echo "✓ HTTPS enabled for Splunk Web using self-signed certificate."
+    else
+        echo "⚠ WARN: Failed to set web.conf"
+    fi
+
 fi
 echo
 
