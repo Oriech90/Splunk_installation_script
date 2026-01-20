@@ -303,7 +303,7 @@ case $SPLUNK_INSTANCE in
         echo
         MAX_RETRIES=2
         RETRY_COUNT=0
-        while [[ $RETRY_COUNT -lt $MAX_RETRIES ]]; do
+        while [[ $RETRY_COUNT -lt $MAX_RETRIES ]]; do        
             read -r -p "Enter Cluster Manager IP/hostname: " cm_ip
             read -r -p "Enter secret key: " secret_key
         
@@ -345,9 +345,10 @@ case $SPLUNK_INSTANCE in
             if [[ -n "$site" ]]; then
                 # if site is provided, add site to the command
                 cmd+= "-site ${site}"
-            if runuser -l splunk -c "$cmd" ; then
-                echo "✓ Peer node configured. Cluster Manager address: ${cm_ip}:8089."
-                echo
+                if runuser -l splunk -c "$cmd" ; then
+                    echo "✓ Peer node configured. Cluster Manager address: ${cm_ip}:8089."
+                    echo
+                fi
                 echo "Restarting Splunk to apply cluster configuration..."
                 if runuser -l splunk -c "/opt/splunk/bin/splunk restart"; then
                     echo "✓ Splunk restarted successfully"
@@ -357,6 +358,7 @@ case $SPLUNK_INSTANCE in
                     exit 1
                 fi
                 break
+                
             else
                 echo "ERROR: Failed to configure peer node with provided credentials."
                 ((RETRY_COUNT++))
