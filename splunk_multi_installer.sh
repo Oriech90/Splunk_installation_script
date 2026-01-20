@@ -149,10 +149,11 @@ echo
 # Step 5: Configure Splunk Web (HTTPS)
 if [[ "$SPLUNK_INSTANCE" != "PEER_NODE" ]]; then
 # Indexer doesn't need web access.    
-    if tee /opt/splunk/etc/system/local/web.conf > dev/null <<EOF
-        [settings]
-        enableSplunkWebSSL = true
-        httpport = 8000
+    if tee /opt/splunk/etc/system/local/web.conf > /dev/null <<EOF
+[settings]
+enableSplunkWebSSL = true
+httpport = 8000
+
 EOF
     then
         echo "✓ HTTPS enabled for Splunk Web using self-signed certificate."
@@ -164,26 +165,37 @@ fi
 echo
 
 # Step 6: Configure network inputs (TCP 9997 and UDP 10514)
-chown -R splunk:splunk /opt/splunk ||  echo "FATAL: Failed to set ownership";  
-echo "[splunktcp]" > /opt/splunk/etc/system/local/inputs.conf ||  echo "FATAL: Failed to create inputs.conf";  
-echo "[splunktcp://9997]" >> /opt/splunk/etc/system/local/inputs.conf ||  echo "FATAL: Failed to add TCP input";  
-echo "index = main" >> /opt/splunk/etc/system/local/inputs.conf
-echo "disabled = 0" >> /opt/splunk/etc/system/local/inputs.conf
-echo "" >> /opt/splunk/etc/system/local/inputs.conf
+chown -R splunk:splunk /opt/splunk ||  echo "FATAL: Failed to set ownership";
+if tee /opt/splunk/etc/system/local/inputs.conf > /dev/null <<EOF
+[splunktcp]
 
-chown splunk:splunk /opt/splunk/etc/system/local/inputs.conf ||  echo "FATAL: Failed to set inputs.conf ownership";  
-echo
-echo "✓ Enabled Splunk TCP input over 9997"
+[splunktcp://9997]
+index = main
+disabled = 0
+
+EOF
+    then
+        echo "✓ Enabled Splunk TCP input over 9997"
+        if ! chown splunk:splunk /opt/splunk/etc/system/local/inputs.conf; then
+            echo "⚠ WARN : Failed to set inputs.conf ownership"
+        fi
+    else
+    # else for the tee
+    echo "⚠ WARN: Failed to set inputs.conf"
+fi
 echo
 
 # Step 7: Test Splunk start and stop
-runuser -l splunk -c "/opt/splunk/bin/splunk start --accept-license --seed-passwd $WEB_PASSWORD" ||  echo "FATAL: Failed to start Splunk"; 
-runuser -l splunk -c '/opt/splunk/bin/splunk stop' ||  echo "FATAL: Failed to stop Splunk"; 
-chown root:splunk /opt/splunk/etc/splunk-launch.conf ||  echo "FATAL: Failed to set splunk-launch.conf ownership"; 
-chmod 644 /opt/splunk/etc/splunk-launch.conf ||  echo "FATAL: Failed to set splunk-launch.conf permissions";  
-echo
-echo "✓ Splunk test start and stop complete. Adjusted splunk-launch.conf to mitigate privilege escalation attack."
-echo
+if \
+    if ! runuser -l splunk -c "/opt/splunk/bin/splunk start --accept-license --seed-passwd $WEB_PASSWORD"; then echo "The command: /opt/splunk/bin/splunk start --accept-license --seed-passwd WEB_PASSWORD" failed!; fi
+    if ! runuser -l splunk -c '/opt/splunk/bin/splunk stop'; then echo "⚠ WARN: Failed to stop Splunk"; fi
+    if ! chown root:splunk /opt/splunk/etc/splunk-launch.conf; then echo "⚠ WARN: Failed to set splunk-launch.conf ownership"; fi
+    if ! chmod 644 /opt/splunk/etc/splunk-launch.conf; then echo "FATAL: Failed to set splunk-launch.conf permissions";  fi
+then
+    echo
+    echo "✓ Splunk test start and stop complete. Adjusted splunk-launch.conf to mitigate privilege escalation attack."
+    echo
+fi
 
 # Step 8: Enable boot-start
 output=$(/opt/splunk/bin/splunk enable boot-start -systemd-managed 1 -user splunk 2>&1)
