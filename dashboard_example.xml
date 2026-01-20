@@ -1,0 +1,112 @@
+<dashboard version="1.1" theme="dark">
+  <label>Varonis MDDR Escalation</label>
+  <row>
+    <panel>
+      <html lang="en" xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'
+    xmlns='http://www.w3.org/TR/REC-html40'>
+ 
+<!--<head>-->
+<!--<meta charset="UTF-8">-->
+<title>Varonis MDDR Escalation</title>
+<!--<link rel="stylesheet" href="../templates/style_docx.css">-->
+<!--</head>-->
+ 
+ 
+<body>
+<div class="Section1">
+<h1>Varonis MDDR Escalation</h1>
+<h2>Notification and Incident Summary</h2>
+<p>
+<h3>Montefiore Medical Center - 01/13/26</h3>
+</p>
+<p><strong>Summary:</strong></p>
+<p>
+            Tor is a network commonly used to anonymize internet traffic and obscure the true origin of a connection. When a device initiates activity that is classified as Tor by Webroot, it may indicate an attempt to bypass standard network visibility and evade detection mechanisms. Identifying activity from Tor-classified devices enables early detection of potentially unauthorized access attempts and supports proactive threat mitigation.
+</p>
+ 
+<p><strong>Threat Model(s):</strong> Tor activity detected</p>
+<p><strong>Log Source(s):</strong> Montefiore Medicine</p>
+<p><strong>Alert ID(s):</strong> <a href="https://montefiore.varonis.io/analytics/entity/Alert/8921B763-24A8-453B-9A6E-714C78BE81BE">8921B…
+</p>
+<p><strong>First & Last timestamp(s):</strong> 2026-01-10 21:24:29</p>
+
+ 
+        <strong>Acting Account(s):</strong>
+<ul>
+<li>Aldo Schenone</li>
+</ul>
+ 
+        
+<br style="page-break-before: always;">
+<div>
+<strong style="padding-bottom: 20px;">Source IP/device(s):</strong>
+<br>
+<table style="border-collapse: collapse;border-spacing: 0;">
+<ul>
+ 
+                    
+<tr>
+<td style="padding: 0;">
+<li style="margin:0">samsungsm-s911u</li>
+</td>
+
+<td></td>
+</tr>
+</table>
+</div>
+</ul>
+
+ 
+        <strong>Alerted Events Notables:</strong>
+<ul>
+<li>To view recent activity of the alerted account in the last 24 hours, click here.</li>
+<li>To view recent activity of the affected account in the last 24 hours, click here.</li>
+</ul>
+</p>
+<strong>Recommended Next Steps:</strong>
+<ul>
+<li>Keep the MDDR Team updated on findings and containment status.</li>
+</ul>
+ 
+        <table id='hrdftrtbl' border='1' cellspacing='0' cellpadding='0' style='margin-left:50in;'>
+<tr style='height:1pt;mso-height-rule:exactly'>
+<td>
+<div style='mso-element:header' id="h1" dir="ltr">
+<p class="MsoHeader">
+<table border="0" width="100%" style="margin-bottom: 15pt;">
+<tr>
+<td width="50%">
+<img src="../templates/header.png" style="width: 210mm;" />
+</td>
+<td width="50%" style="text-align: left">
+<img height="auto" src="">
+</td>
+</tr>
+</table>
+</p>
+</div>
+</td>
+<td>
+<div style='mso-element:footer' id="f1">
+<p class="MsoFooter">
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td align="right" dir="ltr">
+<img src="../templates/footer.png">
+<p>www.varonis.com</p>
+</td>
+</tr>
+</table>
+</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+ 
+</body>
+ 
+</html>
+    </panel>
+  </row>
+</dashboard>
