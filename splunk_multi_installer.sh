@@ -319,23 +319,23 @@ case $SPLUNK_INSTANCE in
             fi
 
             # 4.1 changes - optionally modify host name
-            echo
-            #read -r -p "Should edit host name? [y/N]: " edit_hostname_bool - deprecated
-            read -r -p "Enter hostname or press Enter to skip: " hostname
-            #if [[ "$edit_hostname_bool" =~ ^[Yy]$ ]]; then - deprecated
+            echo            
+            read -r -p "Enter hostname or press Enter to skip: " hostname            
             if [[ -n "$hostname" ]]; then
                 echo "This will edit /system/local/server.conf [general] stanza + /syste/local/inputs.conf [default] stanza"
+                echo "This name will be the instance name"
                 read -r -p "Enter the hostname: " hostname
                 
                 # Update inputs.conf
-                echo "" >> /opt/splunk/etc/system/local/inputs.conf
-                echo "[default]" >> /opt/splunk/etc/system/local/inputs.conf
+                tee -a /opt/splunk/etc/system/local/inputs.conf > /dev/null <<EOF
+[default]
+host = ${hostname}
+
+EOF
+
+
                 # Update server.conf
-                echo "host = ${hostname}" >> /opt/splunk/etc/system/local/inputs.conf
-                echo "" >> /opt/splunk/etc/system/local/server.conf
-                echo "[general]" >> /opt/splunk/etc/system/local/server.conf
-                echo "serverName = ${hostname}" >> /opt/splunk/etc/system/local/server.conf
-                
+                runuser -l "/opt/splunk/bin/splunk set servername ${hostname}"                
             fi
             
             # 4.1 changes - optionally add multi site cluster config for peer node

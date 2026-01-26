@@ -164,7 +164,7 @@ fi
 # create sc4s.service
 #################################
 echo "Configuring SC4S service..."
-# get rid of the pull
+
 if tee "/etc/systemd/system/sc4s.service" > /dev/null 2> /tmp/configuring_sc4s_service.err <<EOF
 [Unit]
 Description=SC4S Container
@@ -224,7 +224,7 @@ echo
 # read ip from the user
 echo "Configuring SC4S environment file..."
 if tee "/opt/sc4s/env_file" > /dev/null 2> /tmp/env_file_config.err <<EOF
-SC4S_DEST_SPLUNK_HEC_DEFAULT_URL=http://$SC4S_DEST_SPLUNK_HEC_DEFAULT_URL:8088
+SC4S_DEST_SPLUNK_HEC_DEFAULT_URL=https://$SC4S_DEST_SPLUNK_HEC_DEFAULT_URL:8088
 SC4S_DEST_SPLUNK_HEC_DEFAULT_TOKEN=$HEC_TOKEN
 #Uncomment the following line if using untrusted SSL certificates
 SC4S_DEST_SPLUNK_HEC_DEFAULT_TLS_VERIFY=no
