@@ -124,18 +124,6 @@ while true; do
     fi
 done
 
-# Get web password from the user
-while true; do
-    read -s -p "Enter Web Password for Splunk admin user (Password must be at least 8 characters): " WEB_PASSWORD
-    echo
-
-    # Ensure password is not empty
-        if [[ -z "$WEB_PASSWORD" || ${#WEB_PASSWORD} -lt 8 ]]; then
-            echo -e "\033[31mError: Password cannot be empty or have less than 8 characters!\033[0m"
-        else
-            break
-        fi
-done
 
 cd /tmp || { echo "FATAL: Failed to change to /tmp"; exit 1; }
 tar -xzvf "$SPLUNK_TARBALL" -C /opt || { echo "FATAL: Failed to extract Splunk"; exit 1; }
@@ -187,7 +175,7 @@ echo
 
 # Step 7: Test Splunk start and stop
 if \
-    if ! runuser -l splunk -c "/opt/splunk/bin/splunk start --accept-license --seed-passwd $WEB_PASSWORD"; then echo "The command: /opt/splunk/bin/splunk start --accept-license --seed-passwd WEB_PASSWORD" failed!; fi
+    if ! runuser -l splunk -c "/opt/splunk/bin/splunk start --accept-license"; then echo "The command: /opt/splunk/bin/splunk start --accept-license --seed-passwd WEB_PASSWORD" failed!; fi
     if ! runuser -l splunk -c '/opt/splunk/bin/splunk stop'; then echo "⚠ WARN: Failed to stop Splunk"; fi
     if ! chown root:splunk /opt/splunk/etc/splunk-launch.conf; then echo "⚠ WARN: Failed to set splunk-launch.conf ownership"; fi
     if ! chmod 644 /opt/splunk/etc/splunk-launch.conf; then echo "FATAL: Failed to set splunk-launch.conf permissions";  fi
