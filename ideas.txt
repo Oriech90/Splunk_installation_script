@@ -1,37 +1,4 @@
 next levels to upgrade the script:
 
-new script for CM configuration:
-on CM:
-splunk add licenses <path to file>
-and then get from the user, step by step: 
-1. replication factor
-2. search factor
-3. secret key
-splunk edit cluster-config -mode manager -replication_factor 4 -search_factor 3 -secret your_key -cluster_label cluster1
-splunk restart
-
-and then create indexes.conf in manager-apps
-
-
-
-on peer:
-splunk edit cluster-config -mode peer -manager_uri https://10.160.31.200:8089 -replication_port 9887 -secret your_key
-splunk restart
-
-
-
-splunk edit licenser-localpeer -manager_uri https://<lic_manager>:8089 - on every peer node
-
-
-
-Dedicated script for indexer Clustering:
-1. manager
-2. peer nodes
-3. SH
-
-Task: 
-Create a new branch with the complete file. 
-Add a dedicated SH option at the start.
-afterwards need to ask the user if it should be connected to indexer cluster and add the relevant CLI command
-
-
+- change web password creation method. prbably to the previous one, when the user have to set username+pass,
+instead of just pass - which is defaulting the user to be "admin"
