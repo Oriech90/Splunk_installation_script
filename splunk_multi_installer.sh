@@ -52,6 +52,19 @@ esac
 echo
 echo
 
+# Pre step: Check if Splunk is already installed
+if [[ -d "/opt/splunk" ]]; then
+    echo "⚠ WARNING: Splunk appears to already be installed at /opt/splunk"
+    read -r -p "Do you want to continue with installation anyway? 
+    (This might override conf files!!!!!!!!) [y/N]: " continue_install
+    if [[ ! "$continue_install" =~ ^[Yy]$ ]]; then
+        echo "Exiting installation script."
+        exit 0
+    fi
+    echo
+fi
+
+
 # Step 1: Disable Transparent Huge Pages (THP)
 echo "never" > /sys/kernel/mm/transparent_hugepage/enabled
 echo "never" > /sys/kernel/mm/transparent_hugepage/defrag
