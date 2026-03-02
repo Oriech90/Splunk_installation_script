@@ -96,7 +96,7 @@ echo "✓ ulimit Increased."
 echo
 
 # Step 3: Prepare Splunk installation
-read -i "/tmp/" -e -p "Enter the full path to the Splunk tarball (e.g., /tmp/splunk-9.3.2.tgz): " TARBALL_PATH
+read -i "/tmp/" -e -p "Enter the full path to the Splunk tarball (e.g., /tmp/splunk-9.3.2.tgz): " SPLUNK_TARBALL
 if [[ -f "$SPLUNK_TARBALL" ]]; then
     echo "✓ Found tarball at $SPLUNK_TARBALL"    
 else
