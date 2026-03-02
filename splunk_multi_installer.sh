@@ -149,19 +149,22 @@ echo
 # Step 5: Configure Splunk Web (HTTPS)
 if [[ "$SPLUNK_INSTANCE" != "PEER_NODE" ]]; then
 # Indexer doesn't need web access.    
-    if tee /opt/splunk/etc/system/local/web.conf > /dev/null <<EOF
-[settings]
-enableSplunkWebSSL = true
-httpport = 8000
+#     if tee /opt/splunk/etc/system/local/web.conf > /dev/null <<EOF
+# [settings]
+# enableSplunkWebSSL = true
+# httpport = 8000
 
-EOF
-    then
-        echo "✓ HTTPS enabled for Splunk Web using self-signed certificate."
-    else
-        echo "⚠ WARN: Failed to set web.conf"
+# EOF
+    if \
+        if ! runuser -l splunk -c '/opt/splunk/bin/splunk enable web-ssl'; then echo "The command: /opt/splunk/bin/splunk enable web-ssl failed!"; fi
+        if ! runuser -l splunk -c '/opt/splunk/bin/splunk set web-port 8000'; then echp "The command: /opt/splunk/bin/splunk set web-port 8000" failed!; fi
+        then
+            echo "✓ HTTPS enabled for Splunk Web using self-signed certificate."
+        else
+            echo "⚠ WARN: Failed to set web.conf"
+        fi
+
     fi
-
-fi
 echo
 
 # Step 6: Configure network inputs (TCP 9997 and UDP 10514)
