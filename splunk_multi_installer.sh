@@ -160,14 +160,6 @@ then
 fi
 
 # Step 5: Configure Splunk Web (HTTPS)
-if [[ "$SPLUNK_INSTANCE" != "PEER_NODE" ]]; then
-# Indexer doesn't need web access.    
-#     if tee /opt/splunk/etc/system/local/web.conf > /dev/null <<EOF
-# [settings]
-# enableSplunkWebSSL = true
-# httpport = 8000
-
-# EOF
 output=$(runuser -l splunk -c '/opt/splunk/bin/splunk enable web-ssl' 2>&1)
 if [ $? -eq 0 ]; then    
     echo "✓ HTTPS enabled for Splunk Web using self-signed certificate."
@@ -177,7 +169,6 @@ else
     echo "Error details: $output"
 fi    
 echo
-fi
 
 
 # Step 6: Enable boot-start
@@ -300,6 +291,18 @@ case $SPLUNK_INSTANCE in
         ;;
     PEER_NODE)
         echo
+        #if [[ "$SPLUNK_INSTANCE" != "PEER_NODE" ]]; then 
+        output=$(runuser -l splunk -c '/opt/splunk/bin/splunk disable webserver' 2>&1)
+        if [ $? -eq 0 ]; then    
+            echo "✓ Disabled Splunk Web access."
+        else
+            echo "⚠ WARN: Failed to disable web access (webserver)"    
+            echo "Error details: $output"
+        fi    
+        echo
+        fi
+
+
         MAX_RETRIES=2
         RETRY_COUNT=0
         while [[ $RETRY_COUNT -lt $MAX_RETRIES ]]; do        
