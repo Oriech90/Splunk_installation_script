@@ -95,14 +95,14 @@ echo
 echo "✓ ulimit Increased."
 echo
 
-# Step 3: Prepare Splunk installation
-read -i "/tmp/" -e -p "Enter the full path to the Splunk tarball (e.g., /tmp/splunk-9.3.2.tgz): " TARBALL_PATH
-if [[ -f "$SPLUNK_TARBALL" ]]; then
-    echo "✓ Found tarball at $SPLUNK_TARBALL"    
-else
-    echo "ERROR: File $SPLUNK_TARBALL does not exist."
+# Step 3: Extract and prepare Splunk installation
+SPLUNK_TARBALL="/tmp/splunk-10.0.2-e2d18b4767e9-linux-amd64.tgz"
+# Check if tarball exists
+if [[ ! -f "$SPLUNK_TARBALL" ]]; then
+    echo "ERROR: Splunk tarball not found at: $SPLUNK_TARBALL"
+    echo "Please ensure the file exists before running this script."
+    exit 1
 fi
-
 
 # Create splunk username and password
 while true; do
@@ -138,6 +138,7 @@ while true; do
 done
 
 
+cd /tmp || { echo "FATAL: Failed to change to /tmp"; exit 1; }
 tar -xzvf "$SPLUNK_TARBALL" -C /opt || { echo "FATAL: Failed to extract Splunk"; exit 1; }
 echo "✓ Splunk extracted successfully"
 
