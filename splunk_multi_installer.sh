@@ -105,7 +105,7 @@ fi
 
 
 # Create splunk username and password
-while ! id "splunks" &>/dev/null; do
+while ! id "splunk" &>/dev/null; do
     read -p "Enter Non-Root Username: " USERNAME
     # Validate username
     if [[ "$USERNAME" =~ [^a-zA-Z0-9] ]] || [ -z "$USERNAME" ]; then
@@ -188,7 +188,7 @@ echo
 
 # Step 7: Test Splunk start and stop
 if \
-    if ! runuser -l splunk -c "/opt/splunk/bin/splunk start --accept-license"; then echo "The command: /opt/splunk/bin/splunk start --accept-license --seed-passwd WEB_PASSWORD" failed!; fi
+    if ! runuser -l splunk -c "/opt/splunk/bin/splunk start --accept-license"; then echo "The command: /opt/splunk/bin/splunk start --accept-license failed!; fi
     if ! runuser -l splunk -c '/opt/splunk/bin/splunk stop'; then echo "⚠ WARN: Failed to stop Splunk"; fi    
 then
     echo
