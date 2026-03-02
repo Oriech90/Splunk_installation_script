@@ -105,7 +105,7 @@ fi
 
 
 # Create splunk username and password
-while true; do
+while ! id "splunks" &>/dev/null; do
     read -p "Enter Non-Root Username: " USERNAME
     # Validate username
     if [[ "$USERNAME" =~ [^a-zA-Z0-9] ]] || [ -z "$USERNAME" ]; then
