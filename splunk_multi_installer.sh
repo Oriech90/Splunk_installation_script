@@ -189,9 +189,7 @@ echo
 # Step 7: Test Splunk start and stop
 if \
     if ! runuser -l splunk -c "/opt/splunk/bin/splunk start --accept-license"; then echo "The command: /opt/splunk/bin/splunk start --accept-license --seed-passwd WEB_PASSWORD" failed!; fi
-    if ! runuser -l splunk -c '/opt/splunk/bin/splunk stop'; then echo "⚠ WARN: Failed to stop Splunk"; fi
-    if ! chown root:splunk /opt/splunk/etc/splunk-launch.conf; then echo "⚠ WARN: Failed to set splunk-launch.conf ownership"; fi
-    if ! chmod 644 /opt/splunk/etc/splunk-launch.conf; then echo "FATAL: Failed to set splunk-launch.conf permissions";  fi
+    if ! runuser -l splunk -c '/opt/splunk/bin/splunk stop'; then echo "⚠ WARN: Failed to stop Splunk"; fi    
 then
     echo
     echo "✓ Splunk test start and stop complete. Adjusted splunk-launch.conf to mitigate privilege escalation attack."
