@@ -188,7 +188,7 @@ echo
 
 # Step 7: Test Splunk start and stop
 if \
-    if ! runuser -l splunk -c "/opt/splunk/bin/splunk start --accept-license"; then echo "The command: /opt/splunk/bin/splunk start --accept-license failed!; fi
+    if ! runuser -l splunk -c "/opt/splunk/bin/splunk start --accept-license"; then echo "The command: /opt/splunk/bin/splunk start --accept-license failed!"; fi
     if ! runuser -l splunk -c '/opt/splunk/bin/splunk stop'; then echo "⚠ WARN: Failed to stop Splunk"; fi    
 then
     echo
