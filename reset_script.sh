@@ -8,3 +8,6 @@ sudo userdel -r splunk && echo "Splunk user removed" || echo "Failed to remove s
 sudo rm -f /etc/systemd/system/disable-thp.service && echo "THP service removed" || echo "Failed to remove THP service"
 sudo systemctl daemon-reload
 echo "Splunk installation removed."
+
+sudo /opt/splunk/bin/splunk disable boot-start
+sudo rm /etc/systemd/system/Splunkd.service

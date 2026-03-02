@@ -146,50 +146,10 @@ chown -R splunk: /opt/splunk ||  { echo "FATAL: Failed to set ownership"; exit 1
 echo "✓ Ownership set to splunk user"
 echo
 
-# Step 5: Configure Splunk Web (HTTPS)
-if [[ "$SPLUNK_INSTANCE" != "PEER_NODE" ]]; then
-# Indexer doesn't need web access.    
-#     if tee /opt/splunk/etc/system/local/web.conf > /dev/null <<EOF
-# [settings]
-# enableSplunkWebSSL = true
-# httpport = 8000
-
-# EOF
-    if \
-        if ! runuser -l splunk -c '/opt/splunk/bin/splunk enable web-ssl'; then echo "The command: /opt/splunk/bin/splunk enable web-ssl failed!"; fi
-        if ! runuser -l splunk -c '/opt/splunk/bin/splunk set web-port 8000'; then echp "The command: /opt/splunk/bin/splunk set web-port 8000" failed!; fi
-        then
-            echo "✓ HTTPS enabled for Splunk Web using self-signed certificate."
-        else
-            echo "⚠ WARN: Failed to set web.conf"
-        fi
-
-    fi
-echo
-
-# Step 6: Configure network inputs (TCP 9997 and UDP 10514)
 chown -R splunk:splunk /opt/splunk ||  echo "FATAL: Failed to set ownership";
-# if tee /opt/splunk/etc/system/local/inputs.conf > /dev/null <<EOF
-# [splunktcp]
 
-# [splunktcp://9997]
-# index = main
-# disabled = 0
 
-# EOF
-if runuser -l splunk -c '/opt/splunk/bin/splunk add tcp 9997 -app system -index main -disabled 0'
-    then
-        echo "✓ Enabled Splunk TCP input over 9997"
-        # if ! chown splunk:splunk /opt/splunk/etc/system/local/inputs.conf; then
-        #     echo "⚠ WARN : Failed to set inputs.conf ownership"
-        # fi
-    else
-    # else for the tee
-    echo "⚠ WARN: Failed to set inputs.conf"
-fi
-echo
-
-# Step 7: Test Splunk start and stop
+# Step 4: Test Splunk start and stop
 if \
     if ! runuser -l splunk -c "/opt/splunk/bin/splunk start --accept-license"; then echo "The command: /opt/splunk/bin/splunk start --accept-license failed!"; fi
     if ! runuser -l splunk -c '/opt/splunk/bin/splunk stop'; then echo "⚠ WARN: Failed to stop Splunk"; fi    
@@ -199,7 +159,28 @@ then
     echo
 fi
 
-# Step 8: Enable boot-start
+# Step 5: Configure Splunk Web (HTTPS)
+if [[ "$SPLUNK_INSTANCE" != "PEER_NODE" ]]; then
+# Indexer doesn't need web access.    
+#     if tee /opt/splunk/etc/system/local/web.conf > /dev/null <<EOF
+# [settings]
+# enableSplunkWebSSL = true
+# httpport = 8000
+
+# EOF
+output=$(runuser -l splunk -c '/opt/splunk/bin/splunk enable web-ssl' 2>&1)
+if [ $? -eq 0 ]; then    
+    echo "✓ HTTPS enabled for Splunk Web using self-signed certificate."
+else
+    echo "⚠ WARN: Failed to set web.conf"
+    echo "(The command: /opt/splunk/bin/splunk enable web-ssl)"
+    echo "Error details: $output"
+fi    
+echo
+fi
+
+
+# Step 6: Enable boot-start
 output=$(/opt/splunk/bin/splunk enable boot-start -systemd-managed 1 -user splunk 2>&1)
 if [ $? -eq 0 ]; then
     echo "✓ Boot-start enabled"
@@ -209,10 +190,26 @@ else
 fi
 echo
 
-# Step 9: Reload systemd and start Splunkd service
+
+# Step 7: Reload systemd and start Splunkd service
 systemctl daemon-reload ||  echo "FATAL: Failed to reload daemon";
 systemctl start Splunkd.service ||  echo "FATAL: Failed to start Splunkd service";
 echo "✓ Splunkd service started"
+echo
+
+
+# Step 8: Configure network inputs (TCP 9997) - must be done when Splunk is runnning
+output=$(runuser -l splunk -c '/opt/splunk/bin/splunk add tcp 9997 -app system -index main -disabled 0' 2>&1)
+if [ $? -eq 0 ]; then
+    echo "✓ Enabled Splunk TCP input over 9997"
+    # if ! chown splunk:splunk /opt/splunk/etc/system/local/inputs.conf; then
+    #     echo "⚠ WARN : Failed to set inputs.conf ownership"
+    # fi
+else
+    # else for the tee
+    echo "⚠ WARN: Failed to set inputs.conf"
+    echo "Error details: $output"
+fi
 echo
 
 if [[ -f /opt/splunk/bin/splunk ]]; then
@@ -222,7 +219,7 @@ if [[ -f /opt/splunk/bin/splunk ]]; then
     echo "has been installed, configured, and started!"
     echo "=========================================="
     echo
-    echo "Visit the Splunk server using https://hostNameORip:8000 as mentioned above."
+    echo "Visit the Splunk server using https://hostNameOrip:8000 as mentioned above."
     echo
 else
     echo "FATAL: Splunk Enterprise has FAILED install!"
