@@ -166,19 +166,20 @@ echo
 
 # Step 6: Configure network inputs (TCP 9997 and UDP 10514)
 chown -R splunk:splunk /opt/splunk ||  echo "FATAL: Failed to set ownership";
-if tee /opt/splunk/etc/system/local/inputs.conf > /dev/null <<EOF
-[splunktcp]
+# if tee /opt/splunk/etc/system/local/inputs.conf > /dev/null <<EOF
+# [splunktcp]
 
-[splunktcp://9997]
-index = main
-disabled = 0
+# [splunktcp://9997]
+# index = main
+# disabled = 0
 
-EOF
+# EOF
+if runuser -l splunk -c '/opt/splunk/bin/splunk add tcp 9997 -app system -index main -disabled 0'
     then
         echo "✓ Enabled Splunk TCP input over 9997"
-        if ! chown splunk:splunk /opt/splunk/etc/system/local/inputs.conf; then
-            echo "⚠ WARN : Failed to set inputs.conf ownership"
-        fi
+        # if ! chown splunk:splunk /opt/splunk/etc/system/local/inputs.conf; then
+        #     echo "⚠ WARN : Failed to set inputs.conf ownership"
+        # fi
     else
     # else for the tee
     echo "⚠ WARN: Failed to set inputs.conf"
