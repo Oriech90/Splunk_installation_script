@@ -1,4 +1,7 @@
 next levels to upgrade the script:
 
-- change web password creation method. prbably to the previous one, when the user have to set username+pass,
-instead of just pass - which is defaulting the user to be "admin"
+- At the end of the installation - ask the user if there are applications to install now.
+    - search the same folder that the user used splunk installation + show the list of splunk apps over there
+    - user leads to the folder or file
+    - multiple file installation - which method? one by one or multiple in a row    
+    - can I show a 'V' next to a item in a list that is already installed? how can i check it? from a list of the file name?
