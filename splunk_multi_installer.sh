@@ -142,7 +142,7 @@ tar -xzvf "$SPLUNK_TARBALL" -C /opt || { echo "FATAL: Failed to extract Splunk";
 echo "✓ Splunk extracted successfully"
 
 
-chown -R splunk: /opt/splunk ||  { echo "FATAL: Failed to set ownership"; exit 1; } 
+chown -R splunk:splunk /opt/splunk ||  { echo "FATAL: Failed to set ownership"; exit 1; } 
 echo "✓ Ownership set to splunk user"
 echo
 
@@ -263,7 +263,7 @@ case $SPLUNK_INSTANCE in
             read -r -p "Enter cluster label (e.g., cluster1): " cluster_label
             
             if [[ -n "$available_sites" && -n "$current_site" && -n "$site_replication_factor" && -n "$site_search_factor" && -n "$secret_key" && -n "$cluster_label" ]]; then
-                runuser -l splunk -c "/opt/splunk/bin/splunk edit cluster-config -mode manager -multisite true -available_sites ${available_sites} -site ${current_site} -site_replication_factor ${site_replication_factor} -site_search_factor ${site_search_factor} -secret ${secret_key} -cluster_label ${cluster_label}" || echo "ERROR: Failed to configure multi-site cluster. Exiting..."; exit 1
+                runuser -l splunk -c "/opt/splunk/bin/splunk edit cluster-config -mode manager -multisite true -available_sites ${available_sites} -site ${current_site} -site_replication_factor ${site_replication_factor} -site_search_factor ${site_search_factor} -secret ${secret_key} -cluster_label ${cluster_label}" || { echo "ERROR: Failed to configure multi-site cluster. Exiting..."; exit 1; }
                 echo "✓ Multi-site Cluster Manager configured"
             else
                 echo "ERROR: Missing required multi-site configuration parameters. Exiting..."; exit 1
@@ -285,13 +285,12 @@ case $SPLUNK_INSTANCE in
         echo
         read -r -p "Restart Splunk now? [y/N]: " restart_now
         if [[ "$restart_now" =~ ^[Yy]$ ]]; then
-            runuser -l splunk -c "/opt/splunk/bin/splunk restart" || echo "ERROR: Failed to restart Splunk. Exiting..."; exit 1
+            runuser -l splunk -c "/opt/splunk/bin/splunk restart" || { echo "ERROR: Failed to restart Splunk. Exiting..."; exit 1; }
             echo "✓ Splunk restarted"
         fi
         ;;
     PEER_NODE)
-        echo
-        #if [[ "$SPLUNK_INSTANCE" != "PEER_NODE" ]]; then 
+        echo        
         output=$(runuser -l splunk -c '/opt/splunk/bin/splunk disable webserver' 2>&1)
         if [ $? -eq 0 ]; then    
             echo "✓ Disabled Splunk Web access."
@@ -299,8 +298,7 @@ case $SPLUNK_INSTANCE in
             echo "⚠ WARN: Failed to disable web access (webserver)"    
             echo "Error details: $output"
         fi    
-        echo
-        fi
+        echo        
 
 
         MAX_RETRIES=2
@@ -335,9 +333,9 @@ host = ${hostname}
 
 EOF
 
-
+                chown -R splunk:splunk /opt/splunk
                 # Update server.conf
-                runuser -l "/opt/splunk/bin/splunk set servername ${hostname}"                
+                runuser -l splunk -c "/opt/splunk/bin/splunk set servername ${hostname}"                
             fi
             
             # 4.1 changes - optionally add multi site cluster config for peer node
