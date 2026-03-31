@@ -255,7 +255,19 @@ case $SPLUNK_INSTANCE in
         echo
         
         if [[ "$is_multi_site" =~ ^[Yy]$ ]]; then
-            read -r -p "Enter available sites (comma-separated, e.g., site1,site2): " available_sites
+            # read -r -p "Enter available sites (comma-separated, e.g., site1,site2): " available_sites
+            read -r -p "Enter how many sites (will be set to: site1,site2,...): " available_sites
+
+            # Generate site list from number input (e.g., 3 -> "site1,site2,site3")
+            num_sites=$available_sites
+            available_sites=""
+            for ((i=1; i<=num_sites; i++)); do
+                if [ $i -gt 1 ]; then
+                    available_sites="${available_sites},"
+                fi
+                available_sites="${available_sites}site${i}"
+            done
+            
             read -r -p "Enter current site (e.g., site1): " current_site
             read -r -p "Enter site replication factor (e.g., origin:2,total:3): " site_replication_factor
             read -r -p "Enter site search factor (e.g., origin:1,total:2): " site_search_factor
