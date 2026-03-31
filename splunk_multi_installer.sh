@@ -323,8 +323,7 @@ case $SPLUNK_INSTANCE in
             read -r -p "Enter hostname or press Enter to skip: " hostname            
             if [[ -n "$hostname" ]]; then
                 echo "This will edit /system/local/server.conf [general] stanza + /system/local/inputs.conf [default] stanza"
-                echo "This name will be the instance name"
-                read -r -p "Enter the hostname: " hostname
+                echo "This name will be the instance name"                
                 
                 # Update inputs.conf
                 tee -a /opt/splunk/etc/system/local/inputs.conf > /dev/null <<EOF
