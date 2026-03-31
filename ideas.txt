@@ -5,3 +5,22 @@ next levels to upgrade the script:
     - user leads to the folder or file
     - multiple file installation - which method? one by one or multiple in a row    
     - can I show a 'V' next to a item in a list that is already installed? how can i check it? from a list of the file name?
+
+
+CM role:
+site1 site2 - should be configured immediately after asking the user how many sites should be. at the moment the user has to type site1+site2
+
+Need to be checked:
+-site ${current_site} - should be rmoved from the command and be set in the [general] stanza.
+-site issue - same with peer node role.
+
+
+line 325:
+fix typo : syste -> system
+
+logic failure: 
+duplicate in hostname reading input from the user.
+
+
+Deployment client - 
+add a question - whether this instace part of CM multisite - if yes read from the user the site 
