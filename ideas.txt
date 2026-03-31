@@ -15,12 +15,12 @@ Need to be checked:
 -site issue - same with peer node role.
 
 
-line 325:
+TUPAL - line 325:
 fix typo : syste -> system
 
-logic failure: 
+TUPAL - logic failure: 
 duplicate in hostname reading input from the user.
 
 
 Deployment client - 
-add a question - whether this instace part of CM multisite - if yes read from the user the site 
+add a question - whether this instace part of CM multisite - if yes read the site from the user  
