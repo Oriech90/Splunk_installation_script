@@ -123,6 +123,8 @@ while ! id "splunk" &>/dev/null; do
     fi
     while true; do
         # Get password from the user
+        echo "NOTE: If you are in an organization: Ensure the password complies with your Organization's Password Policy."
+        echo
         read -s -p "Enter Password for $USERNAME: " PASSWORD
         echo -e "\n"
 
