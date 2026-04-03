@@ -256,12 +256,6 @@ case $SPLUNK_INSTANCE in
         ;;
     CM)
         echo
-        # echo "Step 1: Add licenses"
-        # read -r -p "Enter path to license file: " license_path
-        #if [[ -n "$license_path" ]]; then
-        #    runuser -l splunk -c "/opt/splunk/bin/splunk add licenses ${license_path}" || echo "WARNING: Failed to add license"
-        #    echo "✓ License added"
-        #fi
         read -r -p "Is this a multi-site cluster? [y/n]: " is_multi_site
         echo
         
