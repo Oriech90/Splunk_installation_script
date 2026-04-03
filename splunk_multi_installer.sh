@@ -102,12 +102,15 @@ echo "✓ ulimit Increased."
 echo
 
 # Step 3: Prepare Splunk installation
-read -i "/tmp/" -e -p "Enter the full path to the Splunk tarball (e.g., /tmp/splunk-9.3.2.tgz): " SPLUNK_TARBALL
-if [[ -f "$SPLUNK_TARBALL" ]]; then
-    echo "✓ Found tarball at $SPLUNK_TARBALL"    
-else
-    echo "ERROR: File $SPLUNK_TARBALL does not exist."
-fi
+while true; do
+    read -i "/tmp/" -e -p "Enter the full path to the Splunk tarball (e.g., /tmp/splunk-9.3.2.tgz): " SPLUNK_TARBALL
+    if [[ -f "$SPLUNK_TARBALL" ]]; then
+        echo "✓ Found tarball at $SPLUNK_TARBALL"
+        break
+    else
+        echo "❌ ERROR: File $SPLUNK_TARBALL does not exist. Please check the path and try again."
+    fi
+done
 
 
 # Create splunk username and password
@@ -144,22 +147,25 @@ while ! id "splunk" &>/dev/null; do
 done
 
 
-tar -xzvf "$SPLUNK_TARBALL" -C /opt || { echo "FATAL: Failed to extract Splunk"; exit 1; }
+tar -xzvf "$SPLUNK_TARBALL" -C /opt || { echo "❌ FATAL: Failed to extract Splunk"; exit 1; }
 echo "✓ Splunk extracted successfully"
 
 
-chown -R splunk:splunk /opt/splunk ||  { echo "FATAL: Failed to set ownership";  } 
+chown -R splunk:splunk /opt/splunk ||  { echo "WARN: Failed to set ownership";  } 
 echo "✓ Ownership set to splunk user"
 echo
 
 # Step 4: Test Splunk start and stop
-if \
-    if ! runuser -l splunk -c "/opt/splunk/bin/splunk start --accept-license"; then echo "The command: /opt/splunk/bin/splunk start --accept-license failed!"; fi
-    if ! runuser -l splunk -c '/opt/splunk/bin/splunk stop'; then echo "⚠ WARN: Failed to stop Splunk"; fi    
-then
-    echo
-    echo "✓ Splunk test start and stop complete. Adjusted splunk-launch.conf to mitigate privilege escalation attack."
-    echo
+if runuser -l splunk -c "/opt/splunk/bin/splunk start --accept-license"; then
+    echo "Stopping Splunk to finalize configuration..."
+    if runuser -l splunk -c '/opt/splunk/bin/splunk stop'; then
+        echo "✓ Splunk initial setup test complete."
+    else
+        echo "⚠ WARNING: Splunk started but failed to stop cleanly."
+    fi
+else
+    echo "❌ FATAL: Splunk failed to start. Check /opt/splunk/var/log/splunk/splunkd.log"
+    exit 1
 fi
 
 # Step 5: Configure Splunk Web (HTTPS)
