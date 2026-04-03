@@ -7,7 +7,7 @@ next levels to upgrade the script:
     - can I show a 'V' next to a item in a list that is already installed? how can i check it? from a list of the file name?
 
 
-CM role:
+TUPAL - CM role:
 site1 site2 - should be configured immediately after asking the user how many sites should be. at the moment the user has to type site1+site2
 
 Need to be checked:
@@ -22,5 +22,18 @@ TUPAL - logic failure:
 duplicate in hostname reading input from the user.
 
 
-Deployment client - 
-add a question - whether this instace part of CM multisite - if yes read the site from the user  
+ 
+in SH - add a question - whether this instace part of CM multisite - if yes read the site from the user  
+(Gemini conv: Update Splunk Site Configuration)
+
+maybe add new role - standalone SH / HF
+and new SH that is part of CM
+and new HF that can ask for outputs when the installation is completed
+
+consider asking the user in every role (except indexers) - whether to forward internal logs to the indexers.
+set forwarders + list
+(Gemini convesation: Configure TCP Out Group via CLI)
+
+
+
+
