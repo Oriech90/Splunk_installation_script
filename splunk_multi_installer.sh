@@ -66,8 +66,11 @@ fi
 
 
 # Step 1: Disable Transparent Huge Pages (THP)
-echo "never" > /sys/kernel/mm/transparent_hugepage/enabled
-echo "never" > /sys/kernel/mm/transparent_hugepage/defrag
+{
+    echo "never" > /sys/kernel/mm/transparent_hugepage/enabled
+    echo "never" > /sys/kernel/mm/transparent_hugepage/defrag
+} 2>/dev/null
+
 echo "[Unit]" > /etc/systemd/system/disable-thp.service
 echo "Description=Disable Transparent Huge Pages" >> /etc/systemd/system/disable-thp.service
 echo "" >> /etc/systemd/system/disable-thp.service
