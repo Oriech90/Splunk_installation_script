@@ -70,7 +70,6 @@ fi
     echo "never" > /sys/kernel/mm/transparent_hugepage/enabled
     echo "never" > /sys/kernel/mm/transparent_hugepage/defrag
 } 2>/dev/null
-
 # Create the service unit
 cat <<EOF > /etc/systemd/system/disable-thp.service
 [Unit]
@@ -83,11 +82,13 @@ ExecStart=/bin/sh -c "echo never > /sys/kernel/mm/transparent_hugepage/enabled &
 [Install]
 WantedBy=multi-user.target
 EOF
-systemctl daemon-reload ||  echo "FATAL: Failed to reload daemon"; 
-systemctl start disable-thp ||  echo "FATAL: Failed to start disable-thp"; 
-systemctl enable disable-thp ||  echo "FATAL: Failed to enable disable-thp"; 
-echo
-echo "✓ Transparent Huge Pages (THP) Disabled."
+# Reload and Start - Only warn if it fails
+if systemctl daemon-reload && systemctl enable disable-thp --now &>/dev/null; then
+    echo "✓ Transparent Huge Pages (THP) Disabled successfully."
+else
+    echo "⚠ WARNING: Failed to configure THP service. Splunk may experience performance issues."
+    echo "  Manual fix: Ensure THP is 'never' in /sys/kernel/mm/transparent_hugepage/enabled"
+fi
 echo
 
 # Step 2: Increase system limits (ulimit)
@@ -147,12 +148,9 @@ tar -xzvf "$SPLUNK_TARBALL" -C /opt || { echo "FATAL: Failed to extract Splunk";
 echo "✓ Splunk extracted successfully"
 
 
-chown -R splunk:splunk /opt/splunk ||  { echo "FATAL: Failed to set ownership"; exit 1; } 
+chown -R splunk:splunk /opt/splunk ||  { echo "FATAL: Failed to set ownership";  } 
 echo "✓ Ownership set to splunk user"
 echo
-
-chown -R splunk:splunk /opt/splunk ||  echo "FATAL: Failed to set ownership";
-
 
 # Step 4: Test Splunk start and stop
 if \
