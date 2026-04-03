@@ -71,15 +71,18 @@ fi
     echo "never" > /sys/kernel/mm/transparent_hugepage/defrag
 } 2>/dev/null
 
-echo "[Unit]" > /etc/systemd/system/disable-thp.service
-echo "Description=Disable Transparent Huge Pages" >> /etc/systemd/system/disable-thp.service
-echo "" >> /etc/systemd/system/disable-thp.service
-echo "[Service]" >> /etc/systemd/system/disable-thp.service
-echo "Type=simple" >> /etc/systemd/system/disable-thp.service
-echo 'ExecStart=/bin/sh -c "echo never > /sys/kernel/mm/transparent_hugepage/enabled && echo never > /sys/kernel/mm/transparent_hugepage/defrag"' >> /etc/systemd/system/disable-thp.service
-echo "" >> /etc/systemd/system/disable-thp.service
-echo "[Install]" >> /etc/systemd/system/disable-thp.service
-echo "WantedBy=multi-user.target" >> /etc/systemd/system/disable-thp.service
+# Create the service unit
+cat <<EOF > /etc/systemd/system/disable-thp.service
+[Unit]
+Description=Disable Transparent Huge Pages
+
+[Service]
+Type=simple
+ExecStart=/bin/sh -c "echo never > /sys/kernel/mm/transparent_hugepage/enabled && echo never > /sys/kernel/mm/transparent_hugepage/defrag"
+
+[Install]
+WantedBy=multi-user.target
+EOF
 systemctl daemon-reload ||  echo "FATAL: Failed to reload daemon"; 
 systemctl start disable-thp ||  echo "FATAL: Failed to start disable-thp"; 
 systemctl enable disable-thp ||  echo "FATAL: Failed to enable disable-thp"; 
