@@ -111,19 +111,47 @@ configure_deployment_client() {
 }
 
 configure_send_internal_data_to_indexers() {
-    # read from the user
-    # loop for inserting indexers ips
-    # enter/empty quit the loop
-    # if not even 1 is provided - do not print nothing
-    # if at least one is added - print list f-rward-server
+    read -r -p "Forward internal data to indexers? [y/N]: " send_internal
+    [[ ! "$send_internal" =~ ^[Yy]$ ]] && return 0
 
-    read -r -p "Send the instance internal data to indexers?"
-    if [[ -n "$ds_ip" ]]; then
+    local indexers=()
+    echo "Enter indexer IPs/hostnames one at a time. Press Enter with no input when done."
+    echo
 
-    else
-        echo
+    while true; do
+        read -r -p "Enter indexer IP/hostname (or press Enter to finish): " indexer_ip
+
+        # Empty input = done
+        [[ -z "$indexer_ip" ]] && break
+
+        indexers+=("${indexer_ip}:9997")
+        echo "  + Added ${indexer_ip}:9997"
+    done
+
+    if [[ ${#indexers[@]} -eq 0 ]]; then
+        echo "WARNING: No indexers provided. Skipping internal data forwarding."
+        return 1
     fi
 
+    # Build comma-separated server list
+    local server_list
+    server_list=$(IFS=','; echo "${indexers[*]}")
+
+    # Write outputs.conf
+    local outputs_conf="/opt/splunk/etc/system/local/outputs.conf"
+    tee -a "$outputs_conf" > /dev/null <<EOF
+
+[tcpout:splunk_internal_group]
+server = ${server_list}
+
+[tcpout-server://splunk_internal_group]
+EOF
+
+    chown splunk:splunk "$outputs_conf" 
+
+    echo
+    echo "✓ Internal data forwarding configured to: ${server_list}"
+    return 0
 }
 
 # Configuration Menu
@@ -319,20 +347,6 @@ echo "✓ Splunkd service started"
 echo
 
 
-# Step 8: Configure network inputs (TCP 9997) - must be done when Splunk is runnning
-output=$(runuser -l splunk -c '/opt/splunk/bin/splunk add tcp 9997 -app system -index main -disabled 0' 2>&1)
-if [ $? -eq 0 ]; then
-    echo "✓ Enabled Splunk TCP input over 9997"
-    # if ! chown splunk:splunk /opt/splunk/etc/system/local/inputs.conf; then
-    #     echo "⚠ WARN : Failed to set inputs.conf ownership"
-    # fi
-else
-    # else for the tee
-    echo "⚠ WARN: Failed to set inputs.conf"
-    echo "Error details: $output"
-fi
-echo
-
 if [[ -f /opt/splunk/bin/splunk ]]; then
     echo "=========================================="
     echo "Splunk Enterprise"
@@ -358,16 +372,20 @@ case $SPLUNK_INSTANCE in
     SH)
         echo
         configure_cluster_member "searchhead"
+
+        echo "✓ SH configuration complete"
         ;;
     SINGLE_SERVER)
         echo
-        read -r -p "Enter deployment server IP/hostname: " ds_ip
-        if [[ -n "$ds_ip" ]]; then
-            runuser -l splunk -c "/opt/splunk/bin/splunk set deploy-poll ${ds_ip}:8089" || echo "WARNING: Failed to set deployment server"
-            echo "✓ Deployment client configured: ${ds_ip}:8089"
+        output=$(runuser -l splunk -c '/opt/splunk/bin/splunk add tcp 9997 -app system -index main -disabled 0' 2>&1)
+        if [[ $? -eq 0 ]]; then
+            echo "✓ TCP 9997 receiver enabled"
         else
-            echo "WARNING: No deployment server IP provided."
+            echo "⚠ WARNING: Failed to enable TCP 9997"
+            echo "Error details: $output"
         fi
+
+        echo "✓ Splunk configuration complete"
         ;;
     DEPLOYMENT_SERVER)
         echo
@@ -440,11 +458,23 @@ case $SPLUNK_INSTANCE in
             echo "⚠ WARN: Failed to disable web access (webserver)"    
             echo "Error details: $output"
         fi    
-        echo        
+        echo
+        
+        # Configure 9997 as inital input
+        output=$(runuser -l splunk -c '/opt/splunk/bin/splunk add tcp 9997 -app system -index main -disabled 0' 2>&1)
+        if [[ $? -eq 0 ]]; then
+            echo "✓ TCP 9997 receiver enabled"
+        else
+            echo "⚠ WARNING: Failed to enable TCP 9997"
+            echo "Error details: $output"
+        fi
 
         configure_cluster_member "peer"
         
         ;;
+    HF|SH|DEPLOYMENT_SERVER|CM|PEER_NODE)
+    configure_send_internal_data_to_indexers
+    ;;
 esac
 
 echo
