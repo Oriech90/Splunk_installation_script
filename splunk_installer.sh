@@ -12,34 +12,153 @@ echo '##############################################'
 echo
 echo
 
+configure_cluster_member() {
+    local MODE=$1  # "peer" or "searchhead"
+    local cm_ip secret_key site hostname
+    local MAX_RETRIES=2
+    local RETRY_COUNT=0
+
+    while [[ $RETRY_COUNT -lt $MAX_RETRIES ]]; do
+        read -r -p "Enter Cluster Manager IP/hostname: " cm_ip
+        read -r -p "Enter secret key: " secret_key
+
+        if [[ -z "$cm_ip" || -z "$secret_key" ]]; then
+            echo "ERROR: Both Cluster Manager IP and secret key are required."
+            (( RETRY_COUNT++ ))
+            [[ $RETRY_COUNT -lt $MAX_RETRIES ]] && echo "Try again. (Attempt $((RETRY_COUNT + 1))/$MAX_RETRIES)" && continue
+            echo "ERROR: Max retries reached. Exiting."
+            return 1
+        fi
+
+        # Optional hostname
+        read -r -p "Enter current hostname or press Enter to skip (fill only if the host doesn't have meaningful name): " hostname
+        if [[ -n "$hostname" ]]; then
+            tee -a /opt/splunk/etc/system/local/inputs.conf > /dev/null <<EOF
+[default]
+host = ${hostname}
+
+EOF
+            chown -R splunk:splunk /opt/splunk
+            runuser -l splunk -c "/opt/splunk/bin/splunk set servername ${hostname}" || \
+                echo "WARNING: Failed to set servername"
+        fi
+
+        # Build base command — peer needs replication_port, searchhead does not
+        local cmd="/opt/splunk/bin/splunk edit cluster-config \
+            -mode ${MODE} \
+            -manager_uri https://${cm_ip}:8089 \
+            -secret ${secret_key}"
+
+        [[ "$MODE" == "peer" ]] && cmd+=" -replication_port 9887"
+
+        # Optional: multi-site
+        read -r -p "Enter site name for multi-site cluster or press Enter to skip (for example site1): " site
+        [[ -n "$site" ]] && cmd+=" -site ${site}"
+
+        if runuser -l splunk -c "$cmd"; then
+            echo "✓ ${MODE} configured. Cluster Manager: ${cm_ip}:8089"
+
+            echo
+            read -r -p "Restart Splunk now to apply cluster config? [y/N]: " restart_now
+            if [[ "$restart_now" =~ ^[Yy]$ ]]; then
+                runuser -l splunk -c "/opt/splunk/bin/splunk restart" || \
+                    { echo "ERROR: Restart failed. Manual restart required."; return 1; }
+                echo "✓ Splunk restarted"
+            fi
+            return 0
+        else
+            echo "ERROR: Failed to configure cluster-config for mode: ${MODE}."
+            (( RETRY_COUNT++ ))
+            [[ $RETRY_COUNT -lt $MAX_RETRIES ]] && \
+                echo "Verify CM IP and secret key. (Attempt $((RETRY_COUNT + 1))/$MAX_RETRIES)" && continue
+        fi
+    done
+
+    echo "ERROR: Max retries reached. Exiting."
+    return 1
+}
+
+configure_deployment_client() {
+    read -r -p "Configure a Deployment Client? [y/N]: " use_ds
+    [[ ! "$use_ds" =~ ^[Yy]$ ]] && return 0
+
+    local MAX_RETRIES=2
+    local RETRY_COUNT=0
+
+    while [[ $RETRY_COUNT -lt $MAX_RETRIES ]]; do
+        read -r -p "Enter Deployment Server IP/hostname: " ds_ip
+
+        if [[ -z "$ds_ip" ]]; then
+            echo "ERROR: Deployment Server IP/hostname cannot be empty."
+            (( RETRY_COUNT++ ))
+            [[ $RETRY_COUNT -lt $MAX_RETRIES ]] && echo "Try again. (Attempt $((RETRY_COUNT + 1))/$MAX_RETRIES)" && continue
+            echo "WARNING: Max retries reached. Skipping DS configuration."
+            return 1
+        fi
+
+        if runuser -l splunk -c "/opt/splunk/bin/splunk set deploy-poll ${ds_ip}:8089"; then
+            echo "✓ Deployment client configured: ${ds_ip}:8089"
+            return 0
+        else
+            echo "ERROR: Failed to set deployment server."
+            (( RETRY_COUNT++ ))
+            [[ $RETRY_COUNT -lt $MAX_RETRIES ]] && echo "Try again. (Attempt $((RETRY_COUNT + 1))/$MAX_RETRIES)" && continue
+        fi
+    done
+
+    echo "WARNING: Max retries reached. Skipping DS configuration."
+    return 1
+}
+
+configure_send_internal_data_to_indexers() {
+    # read from the user
+    # loop for inserting indexers ips
+    # enter/empty quit the loop
+    # if not even 1 is provided - do not print nothing
+    # if at least one is added - print list f-rward-server
+
+    read -r -p "Send the instance internal data to indexers?"
+    if [[ -n "$ds_ip" ]]; then
+
+    else
+        echo
+    fi
+
+}
+
 # Configuration Menu
 echo "Choose Splunk Instance:"
-echo "1) HF / SH "
-echo "2) Deployment Client"
-echo "3) Deployment Server"
-echo "4) Cluster Manager"
-echo "5) Peer Node (Indexer)"
+echo "1) Single Server Deployment (Usually Test / Dev environment)"
+echo "2) Heavy Forwarder"
+echo "3) Search Head"
+echo "4) Deployment Server"
+echo "5) Cluster Manager"
+echo "6) Peer Node (Indexer)"
 echo
 read -r -p "Enter your choice [1-5]: " config_choice
 
 case $config_choice in
-    1)
-        SPLUNK_INSTANCE="HF_SH"
-        echo "✓ HF / SH mode selected"
+    1)        
+        SPLUNK_INSTANCE="SINGLE_SERVER"
+        echo "✓ Single Server mode selected"
         ;;
     2)
-        SPLUNK_INSTANCE="DEPLOYMENT_CLIENT"
-        echo "✓ Deployment Client mode selected"
+        SPLUNK_INSTANCE="HF"
+        echo "✓ Heavy Forwarder mode selected"
         ;;
     3)
+        SPLUNK_INSTANCE="SH"
+        echo "✓ Search Head mode selected"
+        ;;    
+    4)
         SPLUNK_INSTANCE="DEPLOYMENT_SERVER"
         echo "✓ Deployment Server mode selected"
         ;;
-    4)
+    5)
         SPLUNK_INSTANCE="CM"
         echo "✓ Cluster Manager mode selected"
         ;;
-    5)
+    6)
         SPLUNK_INSTANCE="PEER_NODE"
         echo "✓ Peer Node (Indexer) mode selected"
         ;;
@@ -230,11 +349,17 @@ fi
 
 # Role-specific configuration
 case $SPLUNK_INSTANCE in
-    HF_SH)
+    HF)
         echo
-        echo "✓ HF / SH configuration complete"
+        configure_deployment_client
+        
+        echo "✓ HF configuration complete"
         ;;
-    DEPLOYMENT_CLIENT)
+    SH)
+        echo
+        configure_cluster_member "searchhead"
+        ;;
+    SINGLE_SERVER)
         echo
         read -r -p "Enter deployment server IP/hostname: " ds_ip
         if [[ -n "$ds_ip" ]]; then
@@ -317,79 +442,8 @@ case $SPLUNK_INSTANCE in
         fi    
         echo        
 
-
-        MAX_RETRIES=2
-        RETRY_COUNT=0
-        while [[ $RETRY_COUNT -lt $MAX_RETRIES ]]; do        
-            read -r -p "Enter Cluster Manager IP/hostname: " cm_ip
-            read -r -p "Enter secret key: " secret_key
+        configure_cluster_member "peer"
         
-            if [[ -z "$cm_ip" || -z "$secret_key" ]]; then
-                echo "ERROR: Both Cluster Manager IP and secret key are required."
-                ((RETRY_COUNT++))
-        
-                if [[ $RETRY_COUNT -lt $MAX_RETRIES ]]; then
-                    echo "Please try again. (Attempt $((RETRY_COUNT + 1))/$MAX_RETRIES)"
-                    echo
-                fi
-                continue
-            fi
-
-            # 4.1 changes - optionally modify host name
-            echo            
-            read -r -p "Enter hostname or press Enter to skip: " hostname            
-            if [[ -n "$hostname" ]]; then
-                echo "This will edit /system/local/server.conf [general] stanza + /system/local/inputs.conf [default] stanza"
-                echo "This name will be the instance name"                
-                
-                # Update inputs.conf
-                tee -a /opt/splunk/etc/system/local/inputs.conf > /dev/null <<EOF
-[default]
-host = ${hostname}
-
-EOF
-
-                chown -R splunk:splunk /opt/splunk
-                # Update server.conf
-                runuser -l splunk -c "/opt/splunk/bin/splunk set servername ${hostname}"                
-            fi
-            
-            # 4.1 changes - optionally add multi site cluster config for peer node
-            read -r -p "Enter current site name (for multi-site clusters) or press Enter to skip: " site
-            # original command without multi-site config
-            cmd="/opt/splunk/bin/splunk edit cluster-config -mode peer -manager_uri https://${cm_ip}:8089 -replication_port 9887 -secret ${secret_key}"
-            if [[ -n "$site" ]]; then
-                # if site is provided, add site to the command
-                cmd+= "-site ${site}"
-                if runuser -l splunk -c "$cmd" ; then
-                    echo "✓ Peer node configured. Cluster Manager address: ${cm_ip}:8089."
-                    echo
-                fi
-                echo "Restarting Splunk to apply cluster configuration..."
-                if runuser -l splunk -c "/opt/splunk/bin/splunk restart"; then
-                    echo "✓ Splunk restarted successfully"
-                    echo "✓ Peer node is now connected to Cluster Manager"
-                else
-                    echo "ERROR: Failed to restart Splunk. Manual restart required."
-                    exit 1
-                fi
-                break
-                
-            else
-                echo "ERROR: Failed to configure peer node with provided credentials."
-                ((RETRY_COUNT++))
-            
-                if [[ $RETRY_COUNT -lt $MAX_RETRIES ]]; then
-                    echo "Please verify the Cluster Manager IP and secret key, then try again."
-                    echo "(Attempt $((RETRY_COUNT + 1))/$MAX_RETRIES)"
-                    echo
-                else
-                    echo "ERROR: Maximum retry attempts reached. Exiting after trying to configure \"edit cluster-config -mode peer\""
-                    exit 1
-                fi
-            fi
-            
-        done
         ;;
 esac
 
