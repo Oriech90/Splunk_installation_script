@@ -28,7 +28,7 @@ in SH - add a question - whether this instace part of CM multisite - if yes read
 
 maybe add new role - standalone SH / HF
 and new SH that is part of CM
-and new HF that can ask for outputs when the installation is completed
+
 
 consider asking the user in every role (except indexers) - whether to forward internal logs to the indexers.
 set forwarders + list
