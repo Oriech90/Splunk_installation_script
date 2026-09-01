@@ -153,8 +153,9 @@ sudo ./splunk_installer.sh
 
 | Symptom | Likely cause |
 |---|---|
+| `bad interpreter`, `$'\r': command not found`, or the **script is not recognized as an executable/shell script** | The file was copied or edited on Windows (e.g. transferred as `.txt`, edited in Notepad) and has Windows-style line endings (`\r\n`) instead of Unix (`\n`). Strip the carriage returns with:<br>`sed -i 's/\r$//' file_name.sh`<br>Run this on whichever script is affected (`splunk_installer.sh` and/or `reset_script.sh`), then try running it again. |
 | `userdel -r` fails during reset | A process owned by the Splunk user is still running (script attempts `pkill` first, but check `ps -u splunk` manually if it persists). |
 | Reset script can't find the Splunk user | Installer was run with a username other than `splunk` — enter the actual username when prompted. |
 | Boot-start disable fails during reset | `/opt/splunk/bin/splunk` was already removed or corrupted before running the reset script; the systemd service removal steps will still clean up the unit file regardless. |
 | Duplicate limit lines in `/etc/systemd/system.conf` after several install/reset cycles | You're running an older version of the reset script that didn't include the `system.conf` cleanup step — re-run the current version. |
-| `bad interpreter`, `$'\r': command not found`, or the script is not recognized as an executable/shell script | The file was copied or edited on Windows (e.g. transferred as `.txt`, edited in Notepad) and has Windows-style line endings (`\r\n`) instead of Unix (`\n`). Strip the carriage returns with:<br>`sed -i 's/\r$//' file_name.sh`<br>Run this on whichever script is affected (`splunk_installer.sh` and/or `reset_script.sh`), then try running it again. |
+
