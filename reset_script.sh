@@ -119,6 +119,7 @@ resolve_splunk_user() {
 disable_boot_start() {
     if [[ -x "${SPLUNK_HOME}/bin/splunk" ]]; then
         log "Disabling Splunk boot-start..."
+        systemctl stop "$SERVICE_NAME" &>/dev/null || warn "Could not stop ${SERVICE_NAME} (may already be stopped)"
         "${SPLUNK_HOME}/bin/splunk" disable boot-start &>/dev/null \
             && ok "Boot-start disabled" \
             || warn "Failed to disable boot-start (continuing anyway)"
