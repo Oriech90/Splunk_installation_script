@@ -328,6 +328,11 @@ else
 fi    
 echo
 
+# Step 5.5: Configure internal data forwarding (skip for single-server — it indexes its own internal logs locally)
+if [[ "$SPLUNK_INSTANCE" != "SINGLE_SERVER" ]]; then
+    configure_send_internal_data_to_indexers
+fi
+
 
 # Step 6: Enable boot-start
 output=$(/opt/splunk/bin/splunk enable boot-start -systemd-managed 1 -user splunk 2>&1)
@@ -472,9 +477,6 @@ case $SPLUNK_INSTANCE in
         configure_cluster_member "peer"
         
         ;;
-    HF|SH|DEPLOYMENT_SERVER|CM|PEER_NODE)
-    configure_send_internal_data_to_indexers
-    ;;
 esac
 
 echo
