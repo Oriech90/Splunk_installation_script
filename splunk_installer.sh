@@ -61,7 +61,7 @@ EOF
             echo
             read -r -p "Restart Splunk now to apply cluster config? [y/N]: " restart_now
             if [[ "$restart_now" =~ ^[Yy]$ ]]; then
-                runuser -l splunk -c "/opt/splunk/bin/splunk restart" || \
+                systemctl restart Splunkd.service || \
                     { echo "ERROR: Restart failed. Manual restart required."; return 1; }
                 echo "✓ Splunk restarted"
             fi
@@ -445,7 +445,7 @@ case $SPLUNK_INSTANCE in
         echo
         read -r -p "Restart Splunk now? [y/N]: " restart_now
         if [[ "$restart_now" =~ ^[Yy]$ ]]; then
-            runuser -l splunk -c "/opt/splunk/bin/splunk restart" || { echo "ERROR: Failed to restart Splunk. Exiting..."; exit 1; }
+            systemctl restart Splunkd.service || { echo "ERROR: Failed to restart Splunk. Exiting..."; exit 1; }
             echo "✓ Splunk restarted"
         fi
         ;;
