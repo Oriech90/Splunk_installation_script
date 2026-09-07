@@ -163,7 +163,7 @@ echo "4) Deployment Server"
 echo "5) Cluster Manager"
 echo "6) Peer Node (Indexer)"
 echo
-read -r -p "Enter your choice [1-5]: " config_choice
+read -r -p "Enter your choice [1-6]: " config_choice
 
 case $config_choice in
     1)        
