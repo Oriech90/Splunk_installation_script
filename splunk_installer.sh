@@ -455,7 +455,7 @@ case $SPLUNK_INSTANCE in
         fi
         ;;
     PEER_NODE)
-        echo        
+        echo
         output=$(runuser -l splunk -c '/opt/splunk/bin/splunk disable webserver' 2>&1)
         if [ $? -eq 0 ]; then    
             echo "✓ Disabled Splunk Web access."
@@ -465,7 +465,20 @@ case $SPLUNK_INSTANCE in
         fi    
         echo
         
+        # Validate Splunk is running before issuing CLI commands.
         # Configure 9997 as inital input
+        max_attempts=4
+        attempt=1
+        until runuser -l splunk -c '/opt/splunk/bin/splunk status' >/dev/null 2>&1; do
+            if (( attempt >= max_attempts )); then
+                echo "ERROR: Splunk did not become ready after $(((max_attempts - 1) * 5)) seconds."
+                exit 1
+            fi
+            echo "Waiting for Splunk to become ready... ($attempt/$max_attempts)"
+            sleep 5
+            ((attempt++))
+        done
+
         output=$(runuser -l splunk -c '/opt/splunk/bin/splunk add tcp 9997 -app system -index main -disabled 0' 2>&1)
         if [[ $? -eq 0 ]]; then
             echo "✓ TCP 9997 receiver enabled"
